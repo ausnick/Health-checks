@@ -3,7 +3,7 @@
 # MySQL credentials for ArcSight
 MYSQL_CMD="/opt/arcsight/logger/current/arcsight/bin/mysql"
 MYSQL_USER="arcsight"
-MYSQL_PASSWORD="PutPasswordHere"
+MYSQL_PASSWORD='PutPasswordHere'
 LOGFILE="mysql_health_check.log"
 MY_CNF_PATH="/opt/arcsight/logger/current/arcsight/logger/config/logger/my.cnf"
 
