@@ -104,33 +104,55 @@ echo -e "\n10. my.cnf Configuration Analysis" | tee -a "$LOGFILE"
 if [ -f "$MY_CNF_PATH" ]; then
     echo "Checking $MY_CNF_PATH for key configurations:" | tee -a "$LOGFILE"
     
-    # Check for InnoDB Buffer Pool Size
+    # Memory Allocation Checks
     grep -E "innodb_buffer_pool_size" "$MY_CNF_PATH" | tee -a "$LOGFILE"
-    
-    # Check Query Cache Size
+    grep -E "innodb_log_buffer_size" "$MY_CNF_PATH" | tee -a "$LOGFILE"
     grep -E "query_cache_size" "$MY_CNF_PATH" | tee -a "$LOGFILE"
-    
-    # Check Max Connections
+
+    # Connection Handling
     grep -E "max_connections" "$MY_CNF_PATH" | tee -a "$LOGFILE"
-    
-    # Check Temp Table and Heap Table Size
+    grep -E "thread_cache_size" "$MY_CNF_PATH" | tee -a "$LOGFILE"
+    grep -E "table_open_cache" "$MY_CNF_PATH" | tee -a "$LOGFILE"
+
+    # Disk I/O Optimization
+    grep -E "innodb_flush_log_at_trx_commit" "$MY_CNF_PATH" | tee -a "$LOGFILE"
+    grep -E "innodb_io_capacity" "$MY_CNF_PATH" | tee -a "$LOGFILE"
+    grep -E "innodb_flush_method" "$MY_CNF_PATH" | tee -a "$LOGFILE"
+
+    # Log File Size
+    grep -E "innodb_log_file_size" "$MY_CNF_PATH" | tee -a "$LOGFILE"
+    grep -E "innodb_log_files_in_group" "$MY_CNF_PATH" | tee -a "$LOGFILE"
+
+    # Temporary Table and Sort Buffers
     grep -E "tmp_table_size|max_heap_table_size" "$MY_CNF_PATH" | tee -a "$LOGFILE"
-    
-    # Check Binary Log Configurations
-    grep -E "log_bin|max_binlog_size|expire_logs_days" "$MY_CNF_PATH" | tee -a "$LOGFILE"
-    
-    # Check other important configurations
-    grep -E "innodb_log_file_size|innodb_flush_log_at_trx_commit|innodb_io_capacity" "$MY_CNF_PATH" | tee -a "$LOGFILE"
+    grep -E "sort_buffer_size" "$MY_CNF_PATH" | tee -a "$LOGFILE"
+    grep -E "join_buffer_size" "$MY_CNF_PATH" | tee -a "$LOGFILE"
+
+    # InnoDB Locking and Concurrency
+    grep -E "innodb_lock_wait_timeout" "$MY_CNF_PATH" | tee -a "$LOGFILE"
+    grep -E "innodb_thread_concurrency" "$MY_CNF_PATH" | tee -a "$LOGFILE"
+
+    # Replication Settings
+    grep -E "sync_binlog" "$MY_CNF_PATH" | tee -a "$LOGFILE"
+    grep -E "binlog_format" "$MY_CNF_PATH" | tee -a "$LOGFILE"
+
+    # General Settings
+    grep -E "innodb_buffer_pool_instances" "$MY_CNF_PATH" | tee -a "$LOGFILE"
+    grep -E "log_bin" "$MY_CNF_PATH" | tee -a "$LOGFILE"
+
+    # Query Optimization
+    grep -E "optimizer_switch" "$MY_CNF_PATH" | tee -a "$LOGFILE"
+    grep -E "join_buffer_size" "$MY_CNF_PATH" | tee -a "$LOGFILE"
+
+    # Network and Timeout Settings
+    grep -E "net_buffer_length|max_allowed_packet" "$MY_CNF_PATH" | tee -a "$LOGFILE"
+    grep -E "wait_timeout|interactive_timeout" "$MY_CNF_PATH" | tee -a "$LOGFILE"
 else
     echo "Configuration file $MY_CNF_PATH not found." | tee -a "$LOGFILE"
 fi
 
-# Commented Out: Maintenance Checks
-: <<'EOF'
-# echo -e "\nMaintenance Checks" | tee -a "$LOGFILE"
-# run_mysql_query "ANALYZE TABLE your_table_name;" | tee -a "$LOGFILE"
-# run_mysql_query "OPTIMIZE TABLE your_table_name;" | tee -a "$LOGFILE"
-# run_mysql_query "SHOW BINARY LOGS;" | tee -a "$LOGFILE"
-EOF
+# 11. Recommended InnoDB Buffer Pool Size
+echo -e "\n11. Recommended InnoDB Buffer Pool Size" | tee -a "$LOGFILE"
+run_mysql_query "SELECT CONCAT(ROUND(KBS/POWER(1024, IF(PowerOf1024<0,0,IF(PowerOf1024>3,0,PowerOf1024)))+0.49999), SUBSTR(' KMG',IF(PowerOf1024<0,0, IF(PowerOf1024>3,0,PowerOf1024))+1,1)) recommended_innodb_buffer_pool_size FROM (SELECT SUM(data_length+index_length) KBS FROM information_schema.tables WHERE engine='InnoDB') A, (SELECT 2 PowerOf1024) B;" "Recommended InnoDB Buffer Pool Size" | tee -a "$LOGFILE"
 
 echo -e "\nMySQL Health Check Complete. Results saved in $LOGFILE."
