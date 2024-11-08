@@ -1,9 +1,17 @@
 #!/bin/bash
 
-# MySQL credentials for ArcSight
+# Prompt for MySQL credentials if not set
+if [ -z "$MYSQL_USER" ]; then
+    read -p "Enter MySQL Username: " MYSQL_USER
+fi
+
+if [ -z "$MYSQL_PASSWORD" ]; then
+    read -sp "Enter MySQL Password: " MYSQL_PASSWORD
+    echo
+fi
+
+# Paths and log settings
 MYSQL_CMD="/opt/arcsight/logger/current/arcsight/bin/mysql"
-MYSQL_USER="arcsight"
-MYSQL_PASSWORD='PutPasswordHere'
 LOGFILE="mysql_health_check.log"
 MY_CNF_PATH="/opt/arcsight/logger/current/arcsight/logger/config/logger/my.cnf"
 
@@ -12,6 +20,7 @@ echo "MySQL Health Check - $(date)" > "$LOGFILE"
 
 # Function to run a MySQL query within the arcsight database and log output
 run_mysql_query() {
+    echo "$2" | tee -a "$LOGFILE"  # Prints the description of the query
     $MYSQL_CMD -u"$MYSQL_USER" --password="$MYSQL_PASSWORD" -e "USE arcsight; $1"
 }
 
